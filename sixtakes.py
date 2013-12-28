@@ -25,7 +25,7 @@ class SixTakes:
     #  - That are doublets (e.g., 11, 22) have 5 blockheads
     #
     # Card 55 is a doublet that contains a 5, thus it has 7 blockheads
-    __CARDS_BLOCKHEADS = (
+    CARDS_BLOCKHEADS = (
                             # 0  1  2  3  4  5  6  7  8  9
                               0, 1, 1, 1, 1, 2, 1, 1, 1, 1, #   0
                               3, 5, 1, 1, 1, 2, 1, 1, 1, 1, #  10
@@ -38,15 +38,19 @@ class SixTakes:
                               3, 1, 1, 1, 1, 2, 1, 1, 5, 1, #  80
                               3, 1, 1, 1, 1, 2, 1, 1, 1, 5, #  90
                               3, 1, 1, 1, 1                 # 100
-                         )
+                       )
 
 
-    def __init__(self, players):
+    def __init__(self, players, ui):
         """
-            @param The list of players such as [(p1Name, p1Instance), (p2Name, p2Instance), ...]
+            @param players The list of players such as [(p1Name, p1Instance), (p2Name, p2Instance), ...].
+            @param ui      The user interface to use.
         """
-        self.players   = players
+        self.ui        = ui
         self.nbPlayers = len(players)
+
+        self.ptypes     = [players[i][0] for i in xrange(self.nbPlayers)]
+        self.pinstances = [players[i][1] for i in xrange(self.nbPlayers)]
 
         self.allCards   = [i for i in xrange(1, self.__NB_CARDS+1)]
         self.table      = None
@@ -64,20 +68,10 @@ class SixTakes:
 
         while len(self.hands[0]) != 0:
 
-            print
-            print '---'
-            print
-            print 'Round %u' % (11 - len(self.hands[0]))
-            print
-            print 'Table:'
-            for (i, row) in enumerate(self.table):
-                print '    Row %u:' % (i+1), row
+            self.ui.display(self.table, self.hands, self.ptypes, self.blockheads)
 
             # Make a list of the cards played by each player
-            cards = sorted([(self.hands[i].pop(self.players[i][self.PIDX_INSTANCE].play(self.table, self.hands[i])), i) for i in xrange(self.nbPlayers)])
-
-            print
-            print 'Cards played:', cards
+            cards = sorted([(self.hands[i].pop(self.pinstances[i].play(self.table, self.hands[i])), i) for i in xrange(self.nbPlayers)])
 
             for (j, (card, playerIdx)) in enumerate(cards):
                 rowIdx = None
@@ -93,15 +87,14 @@ class SixTakes:
 
                     # Let the player choose the row since his card can't be played
                     if rowIdx is None:
-                        rowIdx = self.players[playerIdx][self.PIDX_INSTANCE].take(self.table, [(cards[k][0], self.blockheads[cards[k][1]]) for k in xrange(j+1, len(cards))])
+                        rowIdx = self.pinstances[playerIdx].take(self.table, [(cards[k][0], self.blockheads[cards[k][1]]) for k in xrange(j+1, len(cards))])
 
-                    self.blockheads[playerIdx] += sum([self.__CARDS_BLOCKHEADS[rowcard] for rowcard in self.table[rowIdx]])
+                    self.blockheads[playerIdx] += sum([self.CARDS_BLOCKHEADS[rowcard] for rowcard in self.table[rowIdx]])
                     self.table[rowIdx]          = [card]
                 else:
                     # The most common case: Append the card to the row
                     self.table[rowIdx].append(card)
 
-            print
-            print 'Players:'
-            for (i, score) in enumerate(self.blockheads):
-                print '    %u: %02u blockheads' % (i, score)
+            self.ui.pause()
+
+        self.ui.quit()
