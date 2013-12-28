@@ -5,7 +5,7 @@
 import curses, ui
 
 
-class CursesUI(ui.UI):
+class CursesUI(ui.DummyUI):
     """ A user interface using ncurses """
 
 

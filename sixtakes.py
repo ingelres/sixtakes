@@ -98,3 +98,5 @@ class SixTakes:
             self.ui.pause()
 
         self.ui.quit()
+
+        return sorted([(v, i) for i, v in enumerate(self.blockheads)])

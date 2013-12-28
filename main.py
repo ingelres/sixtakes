@@ -6,6 +6,7 @@
 import os, playerstype, sys
 
 from sixtakes    import SixTakes
+from ui          import DummyUI
 from ui.cursesui import CursesUI
 
 
@@ -60,4 +61,4 @@ for type in sys.argv[2:]:
 
 
 # Let's go
-SixTakes(players, CursesUI()).start()
+print SixTakes(players, DummyUI()).start()

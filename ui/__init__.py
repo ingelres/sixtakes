@@ -3,7 +3,7 @@
 # Author: François Ingelrest
 
 
-class UI:
+class DummyUI:
     """ Base class for a user interface """
 
 
