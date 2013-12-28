@@ -28,23 +28,22 @@ class Player:
             @param table A list of the table's rows of cards such as [[16, 31, 73], [54, 83], ...].
             @param hand  A sorted list of the player's cards such as [3, 45, 47, 71, ...].
 
-            @return The index of the hand's card to be played.
+            @return The index of the card to be played.
         """
         return 0
 
 
-    def take(self, table, players, whoami):
+    def take(self, table, players):
         """
             The card played has a lower value than the last card of all the table's rows.
             The player must take one of the rows to put his own card instead.
 
             @param table   A list of the table's rows of cards such as [[16, 31, 73], [54, 83], ...].
             @param players A list of tuples giving the state of the current round such as [(p1Card, p1Score), (p2Card, p2Score), ...].
-            @param whoami  The index of the current player in the players list.
 
             @return The index of the table's row the player wants to take.
 
-            @note Only the players whose card has not been played yet are listed in players, so there may be only one tuple (the current player) in the list.
+            @note Only the players whose card has not been played yet are listed in players, so the list may be empty (the current player is not included).
         """
         return 0
 

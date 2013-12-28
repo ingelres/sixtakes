@@ -11,9 +11,15 @@ class SixTakes:
     __TABLE_ROWS       =   4
     __CARDS_PER_PLAYER =  10
 
+    # Indexes for player's data
+    (
+        PIDX_NAME,
+        PIDX_INSTANCE,
+    ) = range(2)
+
     # Number of blockheads per card
     #
-    # All cards with values:
+    # All allCards with values:
     #  - Containing a 5 have 2 blockheads
     #  - That are multiple of 10 have 3 blockheads
     #  - That are doublets (e.g., 11, 22) have 5 blockheads
@@ -42,16 +48,60 @@ class SixTakes:
         self.players   = players
         self.nbPlayers = len(players)
 
-        self.cards      = [i for i in xrange(1, self.__NB_CARDS+1)]
-        self.table      = [[] for i in xrange(self.__TABLE_ROWS)]
-        self.hands      = [[] for i in xrange(self.nbPlayers)]
-        self.graveyards = [[] for i in xrange(self.nbPlayers)]
+        self.allCards   = [i for i in xrange(1, self.__NB_CARDS+1)]
+        self.table      = None
+        self.hands      = None
+        self.blockheads = None
 
 
     def start(self):
         """ Start a new game """
-        random.shuffle(self.cards)
+        random.shuffle(self.allCards)
 
-        self.hands      = [sorted([self.cards[i] for i in xrange(j*self.__CARDS_PER_PLAYER, (j+1)*self.__CARDS_PER_PLAYER)]) for j in xrange(self.nbPlayers)]
-        self.table      = [[self.cards[i]] for i in xrange(self.nbPlayers*self.__CARDS_PER_PLAYER, self.nbPlayers*self.__CARDS_PER_PLAYER+4)]
-        self.graveyards = [[] for i in xrange(self.nbPlayers)]
+        self.hands      = [sorted([self.allCards[i] for i in xrange(j*self.__CARDS_PER_PLAYER, (j+1)*self.__CARDS_PER_PLAYER)]) for j in xrange(self.nbPlayers)]
+        self.table      = [[self.allCards[i]] for i in xrange(self.nbPlayers*self.__CARDS_PER_PLAYER, self.nbPlayers*self.__CARDS_PER_PLAYER+4)]
+        self.blockheads = [0 for i in xrange(self.nbPlayers)]
+
+        while len(self.hands[0]) != 0:
+
+            print
+            print '---'
+            print
+            print 'Round %u' % (11 - len(self.hands[0]))
+            print
+            print 'Table:'
+            for (i, row) in enumerate(self.table):
+                print '    Row %u:' % (i+1), row
+
+            # Make a list of the cards played by each player
+            cards = sorted([(self.hands[i].pop(self.players[i][self.PIDX_INSTANCE].play(self.table, self.hands[i])), i) for i in xrange(self.nbPlayers)])
+
+            print
+            print 'Cards played:', cards
+
+            for (j, (card, playerIdx)) in enumerate(cards):
+                rowIdx = None
+
+                # Find the row which last card is the closest to the card being played
+                for (diff, i) in sorted([(card - self.table[i][-1], i) for i in xrange(self.__TABLE_ROWS)]):
+                    if diff > 0:
+                        rowIdx = i
+                        break
+
+                # If the card's value is too low or if the row is full, the player takes a row
+                if rowIdx is None or len(self.table[rowIdx]) == 5:
+
+                    # Let the player choose the row since his card can't be played
+                    if rowIdx is None:
+                        rowIdx = self.players[playerIdx][self.PIDX_INSTANCE].take(self.table, [(cards[k][0], self.blockheads[cards[k][1]]) for k in xrange(j+1, len(cards))])
+
+                    self.blockheads[playerIdx] += sum([self.__CARDS_BLOCKHEADS[rowcard] for rowcard in self.table[rowIdx]])
+                    self.table[rowIdx]          = [card]
+                else:
+                    # The most common case: Append the card to the row
+                    self.table[rowIdx].append(card)
+
+            print
+            print 'Players:'
+            for (i, score) in enumerate(self.blockheads):
+                print '    %u: %02u blockheads' % (i, score)

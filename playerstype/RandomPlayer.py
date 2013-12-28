@@ -19,13 +19,13 @@ class RandomPlayer(playerstype.Player):
 
     def play(self, table, hand):
         """
-            Choose a card at random in the hand
+            Choose a card at random in the hand.
         """
         return random.randint(0, len(hand)-1)
 
 
-    def take(self, table, playerstype, whoami):
+    def take(self, table, playerstype):
         """
-            Choose a row at random
+            Choose a row at random.
         """
         return random.randint(0, len(table)-1)
