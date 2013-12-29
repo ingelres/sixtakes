@@ -3,62 +3,43 @@
 #
 # Author: François Ingelrest
 
-import os, playerstype, sys
+import argparse, os, playerstype, sys
 
+from argparse    import ArgumentParser
 from sixtakes    import SixTakes
 from ui          import DummyUI
 from ui.cursesui import CursesUI
 
 
-def usage(error = None):
-    """ Print usage  """
-    print 'USAGE: %s NB_PLAYERS PLAYER_TYPE PLAYER_TYPE [PLAYER_TYPE, ...]' % os.path.basename(sys.argv[0])
-    print
-    print '    NB_PLAYERS  must be between 2 and 10'
-    print '    PLAYER_TYPE must be one of the available players'
-    print
-    print 'Available players:'
-    print
+# Create the command line parser
+availablePlayers = 'Available players:\n\n' + '\n'.join(['    %-15s %s' % (name, inst.desc()) for (name, inst) in playerstype.getAvailablePlayers()])
+mParser          = ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, epilog=availablePlayers)
 
-    for (name, instance) in playerstype.getAvailablePlayers():
-        print '    %-15s %s' % (name, instance.desc())
-
-    if error is not None:
-        print '\n\nERROR: %s' % error
-
-    sys.exit()
+mParser.add_argument('nbPlayers', metavar='NB_PLAYERS', type=int, help='Must be between 2 and 10')
+mParser.add_argument('types', metavar='PLAYER', type=str, nargs='+', help='A player must be specified for each player in the game')
+mParser.add_argument('-d', '--display', dest='display', action='store_true', help='Display the game proceedings (defaults to true when at least one player is human)')
 
 
 # Entry point
-if len(sys.argv) < 2:
-    usage()
-
-
-players   = []
-nbPlayers = 0
-
+mArgs   = mParser.parse_args()
+players = []
 
 # Check the number of players
-try:
-    nbPlayers = int(sys.argv[1])
-
-    if nbPlayers < 2 or nbPlayers > 10:
-        raise Exception
-
-except:
-    usage('The number of player is invalid')
-
+if mArgs.nbPlayers < 2 or mArgs.nbPlayers > 10:
+    mParser.error('The number of players is invalid')
 
 # Check that a valid player type has been chosen for each player
-if len(sys.argv) != nbPlayers + 2:
-    usage('A valid PLAYER_TYPE must be chosen for each player')
+if len(mArgs.types) != mArgs.nbPlayers:
+    mParser.error('A valid PLAYER must be chosen for each player')
 
-for type in sys.argv[2:]:
+for type in mArgs.types:
     try:
         players.append(playerstype.getAvailablePlayers()[[player[0] for player in playerstype.getAvailablePlayers()].index(type)])
     except:
-        usage('"%s" is not a valid player' % type)
-
+        mParser.error('"%s" is not a valid player' % type)
 
 # Let's go
-print SixTakes(players, DummyUI()).start()
+if mArgs.display: ui = CursesUI()
+else:             ui = DummyUI()
+
+print SixTakes(players, ui).start()
