@@ -3,7 +3,7 @@
 #
 # Author: François Ingelrest
 
-import argparse, operator, os, playerstype, sys, ui, ui.cursesui
+import argparse, operator, os, playerstype, sys, tools, ui, ui.cursesui
 
 from argparse import ArgumentParser
 from sixtakes import SixTakes
@@ -45,11 +45,22 @@ game       = SixTakes(players, display)
 victories  = [0 for i in xrange(mArgs.nbPlayers)]
 blockheads = [0 for i in xrange(mArgs.nbPlayers)]
 
+if not mArgs.display:
+    print 'Simulations in progress...'
+
 for i in xrange(mArgs.nbIters):
+
+    if not mArgs.display and (i & 7) == 0:
+        tools.progressbar(i, mArgs.nbIters, 20)
+
     results    = game.play()
     blockheads = map(operator.add, blockheads, results)
 
     victories[sorted([(v, i) for (i, v) in enumerate(results)])[0][1]] += 1
+
+if not mArgs.display:
+    tools.progressbar(mArgs.nbIters, mArgs.nbIters, 20)
+    print '\n\n'
 
 # Display results
 longestName = max([len(player[0]) for player in players])
