@@ -58,7 +58,7 @@ class SixTakes:
         self.blockheads = None
 
 
-    def start(self):
+    def play(self):
         """ Start a new game """
         random.shuffle(self.allCards)
 
@@ -99,4 +99,4 @@ class SixTakes:
 
         self.ui.quit()
 
-        return sorted([(v, i) for i, v in enumerate(self.blockheads)])
+        return self.blockheads

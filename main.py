@@ -3,12 +3,10 @@
 #
 # Author: François Ingelrest
 
-import argparse, os, playerstype, sys
+import argparse, operator, os, playerstype, sys, ui, ui.cursesui
 
-from argparse    import ArgumentParser
-from sixtakes    import SixTakes
-from ui          import DummyUI
-from ui.cursesui import CursesUI
+from argparse import ArgumentParser
+from sixtakes import SixTakes
 
 
 # Create the command line parser
@@ -18,6 +16,7 @@ mParser          = ArgumentParser(formatter_class=argparse.RawDescriptionHelpFor
 mParser.add_argument('nbPlayers', metavar='NB_PLAYERS', type=int, help='Must be between 2 and 10')
 mParser.add_argument('types', metavar='PLAYER', type=str, nargs='+', help='A player must be specified for each player in the game')
 mParser.add_argument('-d', '--display', dest='display', action='store_true', help='Display the game proceedings (defaults to true when at least one player is human)')
+mParser.add_argument('-i', '--iterations', dest='nbIters', type=int, default=1, help='Number of iterations (defaults to 1)')
 
 
 # Entry point
@@ -39,7 +38,27 @@ for type in mArgs.types:
         mParser.error('"%s" is not a valid player' % type)
 
 # Let's go
-if mArgs.display: ui = CursesUI()
-else:             ui = DummyUI()
+if mArgs.display: display = ui.cursesui.CursesUI()
+else:             display = ui.DummyUI()
 
-print SixTakes(players, ui).start()
+game       = SixTakes(players, display)
+victories  = [0 for i in xrange(mArgs.nbPlayers)]
+blockheads = [0 for i in xrange(mArgs.nbPlayers)]
+
+for i in xrange(mArgs.nbIters):
+    results    = game.play()
+    blockheads = map(operator.add, blockheads, results)
+
+    victories[sorted([(v, i) for (i, v) in enumerate(results)])[0][1]] += 1
+
+# Display results
+longestName = max([len(player[0]) for player in players])
+
+print 'By number of victories:'
+for v, i in sorted([(v, i) for i, v in enumerate(victories)], reverse=True):
+    print '    %s %4u - %.2f%%' % (players[i][0].ljust(longestName), victories[i], victories[i] * 100.0 / mArgs.nbIters)
+
+print
+print 'By number of blockheads:'
+for v, i in sorted([(v, i) for i, v in enumerate(blockheads)]):
+    print '    %s %4u - %.2f%%' % (players[i][0].ljust(longestName), blockheads[i], blockheads[i] * 100.0 / sum(blockheads))
