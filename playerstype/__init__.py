@@ -4,6 +4,8 @@
 
 import os, sys, traceback
 
+from sixtakes import SixTakes
+
 
 class Player:
     """ Base class for a six takes player """
@@ -46,6 +48,15 @@ class Player:
             @note Only the players whose card has not been played yet are listed in players, so the list may be empty (the current player is not included).
         """
         return 0
+
+
+    def getSmallestRow(self, table):
+        """
+            @param table A list of the table's rows of cards such as [[16, 31, 73], [54, 83], ...].
+
+            @return The index of the row with the smallest number of blockheads.
+        """
+        return sorted([(sum([SixTakes.CARDS_BLOCKHEADS[c] for c in row]), i) for i, row in enumerate(table)])[0][1]
 
 
 # Find available players
