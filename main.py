@@ -52,7 +52,12 @@ for i in xrange(mArgs.nbIters):
     results    = game.play()
     blockheads = map(operator.add, blockheads, results)
 
-    victories[sorted([(v, i) for (i, v) in enumerate(results)])[0][1]] += 1
+    # Take draws into account
+    results = sorted([(v, i) for (i, v) in enumerate(results)])
+
+    for v, i in results:
+        if v == results[0][0]:
+            victories[i] += 1
 
 if not mArgs.display:
     tools.progressbar(mArgs.nbIters, mArgs.nbIters, 20)
